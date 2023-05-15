@@ -6,6 +6,7 @@
 	 ("\\.rmd" . poly-markdown+r-mode)
 	 ("\\.jl\\'" . ess-julia-mode))
   :init
+  (setq ess-r-package-auto-activate nil)
   (setq ess-default-style 'RStudio)
   (setq ess-use-flymake nil)
   (setq inferior-julia-program "./julia.sh")
@@ -65,7 +66,7 @@
     (mapcan (lambda (path) 
 	      (mapcar (lambda (r) (concat path r)) (file-name-all-completions "R-" path))
 	      )
-	    (list default-directory (concat gpk-babshome "working/" user-login-name "/templates/generic/"))
+	    (list (locate-dominating-file default-directory (lambda(d) (file-name-all-completions "R-" d))))
 	    )
     )
   
@@ -78,8 +79,10 @@
   :preface
   (add-hook 'ess-r-mode-hook
 	    (lambda ()
+	      (if (not (executable-find "R"))
 		    (setq inferior-ess-r-program (first (gpk-findr)) )
-		    )
+		)
+	      )
 	    )
   )
 

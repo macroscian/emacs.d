@@ -5,8 +5,11 @@
 ;; Things that are most likely specific to my way of working are probably signalled by use of anything derived from any calls to "user-login-name" or "gpk-babshome".  These are probably worth searching for.
 
 ;; Localisation
-
-(if (string-match "babs" (system-name))
+(if (or
+     (string-match "babs" (system-name))
+     (string-match "int" (system-name))
+     (string-match "login" (system-name))
+     )
     (setq gpk-babshome (getenv "my_lab")
 	  gpk-oncamp t)
   (setq gpk-babshome "I:\\"
@@ -14,55 +17,50 @@
   )
 (setq inhibit-default-init t)
 (setq use-package-always-ensure t)
-(defun gpk-ssh-refresh ()
+(defun gpk-magit-status ()
   "Reset the environment variable SSH_AUTH_SOCK"
   (interactive)
-  (let (ssh-auth-sock-old (getenv "SSH_AUTH_SOCK"))
     (setenv "SSH_AUTH_SOCK"
             (car (split-string
                   (shell-command-to-string
                    "ls -t $(find /tmp/ssh-* -user $USER -name 'agent.*' 2> /dev/null)"))))
-    (message
-     (format "SSH_AUTH_SOCK %s --> %s"
-             ssh-auth-sock-old (getenv "SSH_AUTH_SOCK")))))
+    (magit-status)
+    )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Packages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;(setq use-package-always-ensure t)
 (require 'package)
 (add-to-list 'package-archives
  	     '("MELPA" . "https://melpa.org/packages/"))
 (package-initialize)
 (require 'use-package)
-(require 'dash)
-(add-to-list 'load-path "~/.emacs.d/hideshow-org")
-(require 'hideshow-org)
-(global-set-key "\C-ch" 'hs-org/minor-mode)
-(add-to-list 'hs-special-modes-alist
-             '(ess-mode "{" "}" "/[*/]" nil
-			hs-c-like-adjust-block-beginning))
+(use-package dash
+  :ensure t)
+;;(require 'emacsql-sqlite)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; General Prefs
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance
-					;(load-theme 'solarized t)
+
 (setq visible-bell t)
-(setq solarized-use-variable-pitch nil)
-(setq solarized-scale-org-headlines nil)
-(load-theme 'solarized-light t)
-					;(set-face-attribute 'region nil :foreground "#eee8d5" :background "#839496") 
-(let ((line "#cccec4"))
-  (set-face-attribute 'mode-line          nil :overline   line)
-  (set-face-attribute 'mode-line-inactive nil :overline   line)
-  (set-face-attribute 'mode-line-inactive nil :underline  line)
-  (set-face-attribute 'mode-line          nil :box        nil)
-  (set-face-attribute 'mode-line-inactive nil :box        nil)
-  (set-face-attribute 'mode-line          nil :background "#2aa198")
-  (set-face-attribute 'mode-line          nil :foreground "#532f62")
-  (set-face-attribute 'mode-line-inactive nil :background "#eee8d5")
-  )
+(use-package modus-themes
+  :ensure t
+  :config
+  ;; Add all your customizations prior to loading the themes
+  (setq modus-themes-italic-constructs t
+        modus-themes-bold-constructs nil)
+
+  ;; Maybe define some palette overrides, such as by using our presets
+  (setq modus-themes-common-palette-overrides
+        modus-themes-preset-overrides-intense)
+
+  ;; Load the theme of your choice.
+  (load-theme 'modus-operandi :no-confirm)
+
+  (define-key global-map (kbd "<f5>") #'modus-themes-toggle))
+
 (set-cursor-color "#532f62") 
 (setq cursor-type 'bar)
 (setq compilation-scroll-output t)
@@ -103,33 +101,103 @@
 		  (name . "info")
 		  ))
 	 )))
+
 (setq ibuffer-show-empty-filter-groups nil)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
+(use-package dirvish
+  :ensure t
+  :config (dirvish-override-dired-mode)
+  )
+
+(use-package slurm-mode
+  :ensure t
+  )
+
 (add-hook 'ibuffer-mode-hook
-	  '(lambda ()
+	  #'(lambda ()
 	     (ibuffer-auto-mode 1)
 	     (ibuffer-switch-to-saved-filter-groups "home")))
 
-(use-package moody
-  :config
-  (setq x-underline-at-descent-line t)
-  (moody-replace-mode-line-buffer-identification)
-  (moody-replace-vc-mode))
-
-
-(use-package minions
-  :config (minions-mode 1))
-
-
-(set-fontset-font t '(#xe100 . #xe16f) "Iosevka") ;; see link on gpk-ESS-pretty-hook
-
-(if gpk-oncamp
-    (add-to-list 'default-frame-alist '(font . "Iosevka-12" ))
-  (add-to-list 'default-frame-alist '(font . "Consolas" ))
+(use-package denote
+  :custom ((denote-directory "/camp/stp/babs/working/kellyg/docs/notes"))
   )
 
-(menu-bar-mode nil) 
+(use-package org-modern
+  :after org
+  :config (global-org-modern-mode)
+  :init
+  (setq
+   ;; Edit settings
+   org-auto-align-tags nil
+   org-tags-column 0
+   org-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+   
+   ;; Org styling, hide markup etc.
+   org-hide-emphasis-markers t
+   org-pretty-entities t
+   org-ellipsis "…"
+   
+   ;; Agenda styling
+   org-agenda-tags-column 0
+   org-agenda-block-separator ?─
+   org-agenda-time-grid
+   '((daily today require-timed)
+     (900 1100 1300 1500 1700)
+     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+   org-agenda-current-time-string
+   "← now ─────────────────────────────────────────────────")
+  )
+
+(use-package csv-mode
+  :mode (".tsv" ".csv" ".tabular" ".vcf")
+  )
+
+(use-package minions
+   :config (minions-mode 1))
+
+(defun my-frame-tweaks (&optional frame)
+  "My personal frame tweaks."
+  (unless frame
+    (setq frame (selected-frame)))
+  (when frame
+    (with-selected-frame frame
+      (when (display-graphic-p)
+	(tool-bar-mode -1))))
+  )
+
+;; For the case that the init file runs after the frame has been created
+;; Call of emacs without --daemon option.
+(my-frame-tweaks)
+;; For the case that the init file runs before the frame is created.
+;; Call of emacs with --daemon option.
+(add-hook 'after-make-frame-functions #'my-frame-tweaks t)
+
+(use-package fontaine
+  :ensure t
+  :init
+  (setq fontaine-presets
+	'(
+          (Iosevka
+	   :default-family "Iosevka"
+	   :default-height 150
+	   :variable-pitch-family "FiraGO"
+	   :variable-pitch-height 1.05
+	   :line-spacing 1)
+          (Jetbrains
+	   :default-family "JetBrains Mono"
+           :default-height 150
+           :variable-pitch-family "FiraGO"
+	   :variable-pitch-height 1.05
+	   :line-spacing 1)
+	  
+	  ))
+  (fontaine-set-preset 'Iosevka)
+  )
+
+(menu-bar-mode 0) 
 (scroll-bar-mode -1)
 (setq inhibit-splash-screen t)
 (tool-bar-mode -1); hide the toolbar
@@ -143,27 +211,36 @@
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (add-hook 'text-mode-hook 'turn-on-auto-fill) ; wrap long lines in text mode
+
 ;;Shell
 (setq shell-file-name "bash")
 (setq shell-command-switch "-c")
+(autoload 'bash-completion-dynamic-complete
+          "bash-completion"
+          "BASH completion hook")
+        (add-hook 'shell-dynamic-complete-functions
+          'bash-completion-dynamic-complete)
+
 ;; Scrolling
 (setq scroll-preserve-screen-position "always"
       scroll-conservatively 5
       scroll-margin 2)
+(scroll-lock-mode -1)
 (global-set-key (kbd "M-n") (kbd "C-u 1 C-v"))
 (global-set-key (kbd "M-p") (kbd "C-u 1 M-v"))
 (winner-mode 1)
+
 ;;Backup Prefs
 (setq
  backup-by-copying t      ; don't clobber symlinks
- backup-directory-alist
- '(("." . ".~"))    ; don't litter my fs tree
+ backup-directory-alist '(("." . ".~"))    ; don't litter my fs tree
  delete-old-versions t
  kept-new-versions 6
  kept-old-versions 2
  version-control t       ; use versioned backups
  vc-make-backup-files t
  )
+
 (defun force-backup-of-buffer ()
   ;; Make a special "per session" backup at the first save of each
   ;; emacs session.
@@ -178,11 +255,12 @@
   (let ((buffer-backed-up nil))
     (backup-buffer)))
 (add-hook 'before-save-hook  'force-backup-of-buffer)
-					;Spelling
+;;Spelling
 (setq ispell-really-hunspell t)
 ;;(setq ispell-program-name "/camp/stp/babs/working/kellyg/code/bin/hunspell.sh")
 (setq ispell-program-name "hunspell")
 (setq ispell-local-dictionary "en_GB")
+(setq ispell-hunspell-dict-paths-alist '(("en_GB" "/camp/stp/babs/working/kellyg/docs/en_GB.aff")))
 (setq uniquify-buffer-name-style 'post-forward)
 (setq uniquify-strip-common-suffix nil)
 (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
@@ -190,13 +268,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Packages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (use-package purpose-mode
-;; :ensure t
-;; :defer nil
-;; :init
-;; )
-
-
 
 (use-package ace-window
   :ensure t
@@ -224,10 +295,11 @@
 	   (easy-hugo-sshdomain . "localhost")
 	   (easy-hugo-postdir . "content/post")
 	   (easy-hugo-root . "/camp/stp/babs/www/kellyg/public_html/LIVE/blog"))
-	  ;; blog3 setting for aws s3
-	  ;; blog4 setting for google cloud strage
-	  ;; blog5 for github pages
-	  ;; blog6 for firebase hosting
+	  ((easy-hugo-basedir . "/camp/stp/babs/working/kellyg/projects/github/FrancisCrickInstitute/babs-website/")
+	   (easy-hugo-url . "https://bioinformatics.thecrick.org/babs")
+	   (easy-hugo-sshdomain . "localhost")
+	   (easy-hugo-postdir . "content/home")
+	   (easy-hugo-root . "website-dev"))
 	  ))
   (defun gpk-hugo-no-hidden (dirs)
     (seq-filter
@@ -239,30 +311,20 @@
   
   :bind ("C-c C-e" . easy-hugo))
 
-;; (use-package company
-;;   :ensure t
-;;   :config
-;;   (global-company-mode)
-;;   (define-key company-active-map [return] nil)
-;;   (define-key company-active-map [tab] 'company-complete-common)
-;;   (define-key company-active-map (kbd "TAB") 'company-complete-common)
-;;   (define-key company-active-map (kbd "M-TAB") 'company-complete-selection)
-;;   (setq company-selection-wrap-around t
-;; 	company-tooltip-align-annotations t
-;; 	company-idle-delay 1.5
-;; 	company-minimum-prefix-length 2
-;; 	company-tooltip-limit 10)
-;;   )
 
 (use-package outshine
   :init
   (setq outshine-use-speed-commands t)
-  (add-hook 'ess-mode-hook 'outshine-mode)
-  (add-hook 'R-mode-hook 'outshine-mode)
-  (add-hook 'julia-mode-hook 'outshine-mode)
+  ;;  (add-hook 'ess-mode-hook 'outshine-mode)
+  ;;  (add-hook 'R-mode-hook 'outshine-mode)
+  ;;  (add-hook 'julia-mode-hook 'outshine-mode)
   )
 
-
+(use-package quarto-mode
+  :mode (("\\.Rmd" . poly-quarto-mode)
+	 ("\\.rmd" . poly-quarto-mode)
+	 ("\\.qmd" . poly-quarto-mode))
+  )
 
 ;; (use-package projectile
 ;;   :ensure t
@@ -270,10 +332,25 @@
 ;;   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 ;;   (projectile-mode +1))
 
+(use-package detached
+  :init
+  (detached-init)
+  :bind (
+         ([remap async-shell-command] . detached-shell-command)
+         ([remap compile] . detached-compile)
+         ([remap recompile] . detached-compile-recompile)
+         ([remap detached-open-session] . detached-consult-session))
+  :bind-keymap
+  ("C-c d" . detached-action-map)
+  :custom ((detached-env "/camp/home/kellyg/.emacs.d/elpa/detached-0.7/detached-env")
+           (detached-show-output-on-attach t)
+           (detached-shell-history-file "~/.bash_history")))
+
 
 (use-package magit
   :commands magit-get-top-dir
-  :bind ("C-x g" . magit-status))
+  :bind ("C-x g" . magit-status)
+  )
 
 (use-package forge
   :after magit)
@@ -287,6 +364,8 @@
 (use-package undo-tree
   :config
   (global-undo-tree-mode)
+  :custom
+  (undo-tree-history-directory-alist '(("." . "/camp/stp/babs/scratch/kellyg/undo-tree")))
   )
 
 (use-package web-mode
@@ -298,16 +377,39 @@
   (setq web-mode-markup-indent-offset 2)
   )
 
-(use-package ido
-  :config
-  (setq ido-enable-flex-matching t)
-  (setq ido-everywhere t)
-  (ido-mode 1)
+
+(use-package vertico
+  :init
+  (vertico-mode)
+
+  ;; Different scroll margin
+  ;; (setq vertico-scroll-margin 0)
+
+  ;; Show more candidates
+  ;; (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  ;; (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  ;; (setq vertico-cycle t)
+  :bind (:map vertico-map
+              ("RET"   . vertico-directory-enter)
+              ("DEL"   . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
   )
 
-(use-package dired+
-  :config
-  (diredp-toggle-find-file-reuse-dir 1)
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion))))
+  )
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode)
   )
 
 (use-package pandoc-mode
@@ -338,9 +440,6 @@
   (global-highlight-parentheses-mode t)
   )
 
-(use-package bookmark
-  :config
-  (use-package bookmark+))
 
 
 (use-package treemacs
@@ -407,11 +506,38 @@
     )
   )
 
+(use-package hide-mode-line)
+
+
+(use-package org-tree-slide
+  :hook ((org-tree-slide-play . efs/presentation-setup)
+         (org-tree-slide-stop . efs/presentation-end))
+  :init
+  (defun efs/presentation-setup ()
+    ;; Display images inline
+    (org-display-inline-images) ;; Can also use org-startup-with-inline-images
+    (set-face-attribute 'default nil :family "Iosevka Aile" :height 240 :weight 'normal :width 'normal)
+    )
+  (defun efs/presentation-end ()
+;;    (set-face-attribute 'default nil :family "Iosevka" :height 120 :weight 'normal :width 'normal)
+    )
+  
+  :custom
+  (org-tree-slide-activate-message "Presentation started!")
+  (org-tree-slide-deactivate-message "Presentation finished!")
+  (org-tree-slide-header t)
+  (org-tree-slide-breadcrumbs " > ")
+  (org-image-actual-width nil)
+  )
 
 
 
 (use-package perspective
-  :config
+  :bind
+  ("C-x C-b" . persp-list-buffers)         ; or use a nicer switcher, see below
+  :custom
+  (persp-mode-prefix-key (kbd "C-c M-p"))  ; pick your own prefix key here
+  :init
   (persp-mode))
 
 (use-package yasnippet
@@ -428,6 +554,10 @@
   )
 
 (load-file (expand-file-name "gpk/ess.el" user-emacs-directory))
+(load-file (expand-file-name "gpk/consult.el" user-emacs-directory))
+(load-file (expand-file-name "gpk/compile.el" user-emacs-directory))
+(load-file (expand-file-name "gpk/slurm.el" user-emacs-directory))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  
 ;; work patterns
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -444,9 +574,9 @@
 			    )))
     (seq-reduce (lambda (thispth sublist) (replace-regexp-in-string
 					   (replace-regexp-in-string "USER" user-login-name
-								     (replace-regexp-in-string "^//CAMP/" gpk-babshome (first sublist))
+								     (replace-regexp-in-string "^//CAMP/" gpk-babshome (car sublist))
 								     )
-					   (rest sublist) thispth))
+					   (cdr sublist) thispth))
 		gpk-abbrev-alist pth)
     )
   )
@@ -460,19 +590,19 @@
       )
 
 ;; Get lab names from directory structure
-(if gpk-oncamp
-    (setq gpk-lab-names (append
-			 '("external")
-			 (directory-files "/camp/lab" nil "^[a-z]")
-			 (directory-files "/camp/stp" nil "^[a-z]")))
-  (setq gpk-lab-names (append
-		       '("external")
-		       (mapcar 
-			(lambda (x) (replace-regexp-in-string "lab-" "" x))
-			(directory-files "\\\\data.thecrick.org" nil "^[a-z]"))
-		       )
-	)
-  )
+;; (if gpk-oncamp
+;;     (setq gpk-lab-names (append
+;; 			 '("external")
+;; 			 (directory-files "/camp/lab" nil "^[a-z]")
+;; 			 (directory-files "/camp/stp" nil "^[a-z]")))
+;;   (setq gpk-lab-names (append
+;; 		       '("external")
+;; 		       (mapcar 
+;; 			(lambda (x) (replace-regexp-in-string "lab-" "" x))
+;; 			(directory-files "\\\\data.thecrick.org" nil "^[a-z]"))
+;; 		       )
+;; 	)
+;;   )
 
 
 ;; My bookmarks
@@ -482,196 +612,33 @@
 	     (?T "## * TODO ")
 	     (?c "@crick.ac.uk")
 	     ))
-  (set-register (first r) (second r)))
+  (set-register (car r) (car (cdr r))))
 
 
 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Interacting with slurm
-(require 'transient)
-(load-file (expand-file-name "slurm/slurm.el" user-emacs-directory))
 
-(define-transient-command slurmacs ()
-  "Slurmacs"
-  :value (lambda () (list (concat "--output=" (buffer-file-name) ".out.log")
-			  (concat "--error=" (buffer-file-name) ".err.log")
-			  (concat "--job-name=" (buffer-name) "")
-			  (concat "output_file='" (file-name-base) ".html'")
-			  (concat "output_dir='" default-directory
-				  (and (eq major-mode `ess-r-mode)
-				       (first (ess-get-words-from-vector "dirname(vDevice())\n")) "'"))
-			  (concat "params=list(verion='" (magit-git-str "describe") "')" )
-			  "--mem=30G"  "--partition=cpu" "--time=1:00:00" "--cpus-per-task=4"
-			  ))
-  ["Arguments"
-   ("-t" "Time Limit" "--time=" :reader gpk-sreader)
-   ("-p" "Partition" "--partition=" :reader gpk-sreader)
-   ("-c" "CPUs" "--cpus-per-task=" :reader gpk-sreader)
-   ("-m" "Memory" "--mem=" :reader gpk-sreader)
-   ("-l" "Log" "--output=" :reader gpk-freader)
-   ("-e" "Error file" "--error=" :reader gpk-freader)
-   ("-j" "Job Name" "--job-name=" :reader gpk-sreader)
-   ]
-  ["Markdown"
-   :if (lambda () (bound-and-true-p poly-markdown+r-mode))
-   ("-o" "Output file" "output_file=")
-   ("-d" "Output dir" "output_dir=")
-   ("-v" "Params" "params=")
-   ]
-  ["Actions"
-   ("s" "Submit to slurm" slurmacs-submit)
-   ("b" "Build script" slurmacs-message)
-   ("S" "Status" slurm)
-   ]
-  )
-(global-set-key "\C-cs" 'slurmacs)
-(defun slurmacs-submit (&optional args)
-  "Submit script to CAMP"
-  (interactive (list (transient-args 'slurmacs)))
-  (let ((script-string (gpk-build-slurm args))
-	(inhibit-message t))
-    (message script-string)
-    (shell-command-to-string script-string)
-    )
-  )
-(defun slurmacs-message (&optional args)
-  "Submit script to CAMP"
-  (interactive (list (transient-args 'slurmacs)))
-  (setq shell-script (gpk-build-slurm args))
-  (switch-to-buffer "slurm.sh")
-  (insert shell-script)
-  )
-(defun gpk-build-slurm (args)
-  "Make the bash script that will submit to slurm"
-  (interactive (list (transient-args 'slurmacs)))
-  (let* ((this-file (buffer-file-name (current-buffer)))
-	 (all-args (gpk-slurmacs-args 'slurmacs))
-	 (slurm-args (gpk-slurmacs-sub-args args all-args "Arguments"))
-	 (rmd-args (gpk-slurmacs-sub-args args all-args "Markdown"))
-	 (cmd (cond ((bound-and-true-p poly-markdown+r-mode)
-		     (concat "R -e \"rmarkdown::render('" this-file "', " (string-join rmd-args ",")"')\"")
-		     )
-		    ((eq major-mode `ess-r-mode)
-		     (concat "Rscript \"" this-file "\"")
-		     )
-		    (t this-file)
-		    )
-	      )
+
+;;; Interacting with .babs
+
+(defun gpk-get-hash-from-yaml (filePath)
+  "Return filePath's file content."
+  (with-temp-buffer
+    (insert-file-contents filePath)
+    (aref (yaml-parse-string (buffer-string)) 0)))
+
+(defun gpk-babs-to-github ()
+  "Generate github repository from .babs file details"
+  (let* ((babs (gpk-get-hash-from-yaml ".babs"))
+	 (project (gethash 'Project babs))
+	 (hash (gethash 'Hash babs))
+	 (repo-name (concat hash "-" (replace-regexp-in-string "[^A-Za-z0-9_.-]" "-" project)))
 	 )
-    (concat "sbatch " (string-join slurm-args " ") " <<EOF
-#!/bin/bash
-source " inferior-ess-r-program "
-" cmd  "
-[[ -z \"${SLACK_URL}\" ]] || curl -X POST -H 'Content-type: application/json' --data '{\"text\":\"'$SLURM_JOB_NAME' has finished\"}' \"${SLACK_URL}\"
-EOF")
+    (ghub-post "/orgs/BABS-STP/repos" `((name . ,repo-name) (private true)))
+    (magit-remote-add "origin" (concat "git@github.com:BABS-STP/" repo-name ".git"))
     )
   )
-(defun gpk-slurmacs-args (trans)
-  "Give a grouped list of all arguments in a transient suffix"
-  (mapcar (lambda (grp) (cons (plist-get (aref grp 2) :description)
-			      (seq-map (lambda (cmd) (plist-get (third cmd) :argument)) (aref grp 3))))
-	  (get trans 'transient--layout)
-	  ))
-(defun gpk-slurmacs-sub-args (args grouped-args group)
-  "Find which args belong to a specific group"
-  (let (
-	(these-args (rest (seq-find (lambda (grp) (string= (first grp) group)) grouped-args)))
-	)
-    (seq-filter (lambda (argstr)
-		  (member (replace-regexp-in-string "\\(=\\).*" "\\1" argstr) these-args)
-		  )
-		args)
-    )
-  )
-
-
-
-(org-add-link-type "outlook" 'org-outlook-open)
-
-(defun org-outlook-open (id)
-  "Open the Outlook item identified by ID.  ID should be an Outlook GUID."
-  ;;(w32-shell-execute "open" (concat "outlook:" id))
-  )
-
-(define-transient-command dcamp ()
-  "Dcamp"
-  :value (lambda () (list (concat "file=" (or buffer-file-name default-directory))  (concat "host=" (first (split-string (getenv "SSH_CLIENT"))))))
-  ["Arguments"
-   ("-f" "File" "file=" :reader gpk-freader)
-   ("-h" "Host" "host=" :reader gpk-sreader)
-   (dcamp-region)
-   ]
-  [
-   ["Actions"
-    ("o" "Open on PC" run-dcamp)]
-   ["Clipboard "
-    ("c" "Copy File" run-dcamp)
-    ("p" "Copy Path" run-dcamp)]
-   ["Email"
-    ("e" "Create" run-dcamp)
-    ("r" "Reply to selected" run-dcamp)]
-   ]
-  )
-(setq dcamp-map '(("o" . "open") ("c" . "cfile") ("p" . "cpath") ("e" . "email")("r" . "reply")))
-(global-set-key "\C-cd" 'dcamp)
-(defun run-dcamp (args dcamp-prefix)
-  (interactive (list (transient-args 'dcamp) (alist-get (this-command-keys) dcamp-map nil nil 'equal)))
-  (let* (
-	 (all-vars (mapcar 'gpk-kv-to-cons args))
-	 (path (rest (assoc "file" all-vars)))
-	 (host (first(split-string
-		      (alist-get "SSH_CONNECTION" (mapcar 'gpk-kv-to-cons (frame-parameter nil 'environment)) nil nil 'equal)
-		      " ")))
-	 )
-    (make-network-process :name "dcamp"
-			  :host host
-			  :service (getenv "DCAMP_PORT")
-			  :nowait t
-			  :sentinel (lambda (&rest msg) (message (format "Connection message [%s]" msg)))
-			  )
-    (sit-for 1)
-    (process-send-string (get-process "dcamp")
-			 (concat (secure-hash 'sha256 (getenv "DCAMP")) ":"
-				 dcamp-prefix ":-:"
-				 (replace-regexp-in-string "/camp/stp" "//data.thecrick.org" path))
-			 )
-    (delete-process (get-process "dcamp"))
-    )
-  )
-(define-infix-argument dcamp-region ()
-  :description "Region"
-  :class 'transient-switches
-  :shortarg "-r"
-  :key "-r"
-  :argument "--region="
-  :argument-regexp "\\(Path\\|Body\\)"
-  :argument-format "%s"
-  :choices '("Path" "Body"))
-(defun gpk-sreader (prompt init hist)
-  (let* (
-	 (prefix (second (split-string (symbol-name (oref obj command)) ":")))
-	 (all-vars (mapcar 'gpk-kv-to-cons (transient-args (intern prefix))))
-	 (default (rest (assoc (string-remove-suffix "=" prompt) all-vars)))
-	 )
-    (read-string prompt default)
-    )
-  )
-(defun gpk-freader (prompt init hist)
-  (let* (
-	 (prefix (second (split-string (symbol-name (oref obj command)) ":"))) ; 'obj' is inherited from transient-infix-read
-	 (all-vars (mapcar 'gpk-kv-to-cons (transient-args (intern prefix))))
-	 (default (rest (assoc (string-remove-suffix "=" prompt) all-vars)))
-	 )
-    (read-file-name prompt default)
-    )
-  )
-(defun gpk-kv-to-cons (kv)
-  (let ((ss (split-string kv "=")))
-    (cons (first ss) (second ss)))
-  )
-
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -686,15 +653,92 @@ EOF")
  '(ansi-color-faces-vector
    [default default default italic underline success warning error])
  '(ansi-color-names-vector
-   ["#242424" "#e5786d" "#95e454" "#cae682" "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"])
+   ["#073642" "#dc322f" "#859900" "#b58900" "#268bd2" "#d33682" "#2aa198" "#657b83"])
  '(bmkp-last-as-first-bookmark-file "~/.emacs.d/bookmarks")
  '(browse-url-browser-function 'eww-browse-url)
+ '(connection-local-criteria-alist
+   '(((:application tramp)
+      tramp-connection-local-default-system-profile tramp-connection-local-default-shell-profile)) t)
+ '(connection-local-profile-alist
+   '((tramp-connection-local-darwin-ps-profile
+      (tramp-process-attributes-ps-args "-acxww" "-o" "pid,uid,user,gid,comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" "-o" "state=abcde" "-o" "ppid,pgid,sess,tty,tpgid,minflt,majflt,time,pri,nice,vsz,rss,etime,pcpu,pmem,args")
+      (tramp-process-attributes-ps-format
+       (pid . number)
+       (euid . number)
+       (user . string)
+       (egid . number)
+       (comm . 52)
+       (state . 5)
+       (ppid . number)
+       (pgrp . number)
+       (sess . number)
+       (ttname . string)
+       (tpgid . number)
+       (minflt . number)
+       (majflt . number)
+       (time . tramp-ps-time)
+       (pri . number)
+       (nice . number)
+       (vsize . number)
+       (rss . number)
+       (etime . tramp-ps-time)
+       (pcpu . number)
+       (pmem . number)
+       (args)))
+     (tramp-connection-local-busybox-ps-profile
+      (tramp-process-attributes-ps-args "-o" "pid,user,group,comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" "-o" "stat=abcde" "-o" "ppid,pgid,tty,time,nice,etime,args")
+      (tramp-process-attributes-ps-format
+       (pid . number)
+       (user . string)
+       (group . string)
+       (comm . 52)
+       (state . 5)
+       (ppid . number)
+       (pgrp . number)
+       (ttname . string)
+       (time . tramp-ps-time)
+       (nice . number)
+       (etime . tramp-ps-time)
+       (args)))
+     (tramp-connection-local-bsd-ps-profile
+      (tramp-process-attributes-ps-args "-acxww" "-o" "pid,euid,user,egid,egroup,comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" "-o" "state,ppid,pgid,sid,tty,tpgid,minflt,majflt,time,pri,nice,vsz,rss,etimes,pcpu,pmem,args")
+      (tramp-process-attributes-ps-format
+       (pid . number)
+       (euid . number)
+       (user . string)
+       (egid . number)
+       (group . string)
+       (comm . 52)
+       (state . string)
+       (ppid . number)
+       (pgrp . number)
+       (sess . number)
+       (ttname . string)
+       (tpgid . number)
+       (minflt . number)
+       (majflt . number)
+       (time . tramp-ps-time)
+       (pri . number)
+       (nice . number)
+       (vsize . number)
+       (rss . number)
+       (etime . number)
+       (pcpu . number)
+       (pmem . number)
+       (args)))
+     (tramp-connection-local-default-shell-profile
+      (shell-file-name . "/bin/sh")
+      (shell-command-switch . "-c"))
+     (tramp-connection-local-default-system-profile
+      (path-separator . ":")
+      (null-device . "/dev/null"))) t)
  '(custom-safe-themes
-   '("8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "412c25cf35856e191cc2d7394eed3d0ff0f3ee90bacd8db1da23227cdff74ca2" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default))
+   '("e2337309361eef29e91656c5e511a6cb8c54ce26231e11424a8873ea88d9093e" "70b596389eac21ab7f6f7eb1cf60f8e60ad7c34ead1f0244a577b1810e87e58c" "5f128efd37c6a87cd4ad8e8b7f2afaba425425524a68133ac0efd87291d05874" "e1f4f0158cd5a01a9d96f1f7cdcca8d6724d7d33267623cc433fe1c196848554" "51c71bb27bdab69b505d9bf71c99864051b37ac3de531d91fdad1598ad247138" "8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "412c25cf35856e191cc2d7394eed3d0ff0f3ee90bacd8db1da23227cdff74ca2" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default))
  '(dropbox-access-token
    "NzTOg8k2OwoAAAAAAAAH-6vExX9OI3S3LD3sJ_ToWYsYF_VNM-KnnTVTKmddhKkQ")
  '(ess-swv-pdflatex-commands '("pdflatex" "texi2pdf" "make"))
  '(ess-swv-processor 'knitr)
+ '(highlight-parentheses-colors '("#2aa198" "#b58900" "#268bd2" "#6c71c4" "#859900"))
  '(hl-sexp-background-color "#efebe9")
  '(markdown-command "pandoc")
  '(moody-mode-line-height 20)
@@ -706,25 +750,22 @@ EOF")
      (file . find-file)
      (g-frame)))
  '(org-speed-commands-user '(("h" . org-clock-in) ("d" . lambda)))
+ '(org-trello-current-prefix-keybinding "C-c o")
  '(org-use-speed-commands t)
  '(package-selected-packages
-   '(dash org-trello pcre2el julia-mode julia-repl julia-shell ess epc simpleclip poly-R poly-markdown poly-org lsp-mode purpose-mode window-purpose solarize-theme gnu-elpa-keyring-update hyperbole exwme exwm matlab-mode easy-hugo font-lock-studio gist dropbox sqlite r-autoyas pretty-symbols org-fancy-priorities flucui-themes company flycheck zenburn image+ color-theme-solarized groovy-mode f bookmark+ dired+ highlight-parentheses undo-tree))
- '(safe-local-variable-values '((babshash . babs8aecf935))))
+   '(slurm-mode denote org-modern emacsql-sqlite emacsql-sqlite-module sqlite3 use-package modus-themes theme-anchor eshell-git-prompt dirvish peep-dired quarto-mode emmet-mode visual-fill-column doom-themes hide-mode-line jsonrpc eglot detached typescript-mode texfrag all-the-icons all-the-icons-dired dired-sidebar auctex yaml-mode polymode bash-completion csv-mode zotxt geiser-guile guix keychain-environment multiple-cursors ghub magit forge smartparens python-mode go-mode markdown-mode dash pcre2el julia-mode julia-repl julia-shell ess epc simpleclip poly-R poly-markdown poly-org lsp-mode purpose-mode window-purpose solarize-theme gnu-elpa-keyring-update hyperbole exwme exwm matlab-mode easy-hugo font-lock-studio gist dropbox sqlite r-autoyas pretty-symbols flucui-themes company flycheck zenburn image+ color-theme-solarized groovy-mode f dired+ highlight-parentheses))
+ '(safe-local-variable-values '((babshash . babs8aecf935)))
+ '(warning-suppress-log-types '((emacsql) (emacsql) (emacsql) (emacsql)))
+ '(warning-suppress-types '((emacsql) (emacsql) (emacsql))))
 
 
-					;(custom-set-faces
-;; custom-set-faces was added by Custom.
-;; If you edit it by hand, you could mess it up, so be careful.
-;; Your init file should contain only one such instance.
-;; If there is more than one, they won't work right.
-					; '(default ((t (:family "Consolas" :foundry "microsoft" :slant normal :weight normal :height 105 :width normal)))))
+			
+(put 'narrow-to-region 'disabled nil)
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(comint-highlight-input ((t (:inherit nil :foreground "#0000FF" :weight normal))))
- '(outline-1 ((t (:foreground "#268bd2" :box (:line-width 2 :color "grey75" :style pressed-button) :overline nil :weight bold :height 1.6))))
- '(outline-2 ((t (:foreground "#2aa198" :box (:line-width 2 :color "grey75" :style pressed-button) :overline nil :weight bold :height 1.4))))
- '(outline-3 ((t (:foreground "#b58900" :box (:line-width 2 :color "grey75" :style pressed-button) :overline nil :weight bold :height 1.2)))))
-(put 'narrow-to-region 'disabled nil)
+ )
+(put 'dired-find-alternate-file 'disabled nil)
