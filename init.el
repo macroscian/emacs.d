@@ -123,6 +123,32 @@
   :custom ((denote-directory "/camp/stp/babs/working/kellyg/docs/notes"))
   )
 
+
+(use-package ligature
+  :config
+  ;; Enable the "www" ligature in every possible major mode
+  (ligature-set-ligatures 't '("www"))
+  ;; Enable traditional ligature support in eww-mode, if the
+  ;; `variable-pitch' face supports it
+  (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
+  ;; Enable all Cascadia Code ligatures in programming modes
+  (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
+                                       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+                                       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+                                       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+                                       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+                                       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+                                       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+                                       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+                                       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+                                       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+                                       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+                                       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+                                       "\\\\" "://"))
+  ;; Enables ligature checks globally in all buffers.  You can also do it
+  ;; per mode with `ligature-mode'.
+  (global-ligature-mode t))
+
 (use-package org-modern
   :after org
   :config (global-org-modern-mode)
@@ -658,7 +684,7 @@
  '(browse-url-browser-function 'eww-browse-url)
  '(connection-local-criteria-alist
    '(((:application tramp)
-      tramp-connection-local-default-system-profile tramp-connection-local-default-shell-profile)) t)
+      tramp-connection-local-default-system-profile tramp-connection-local-default-shell-profile)))
  '(connection-local-profile-alist
    '((tramp-connection-local-darwin-ps-profile
       (tramp-process-attributes-ps-args "-acxww" "-o" "pid,uid,user,gid,comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" "-o" "state=abcde" "-o" "ppid,pgid,sess,tty,tpgid,minflt,majflt,time,pri,nice,vsz,rss,etime,pcpu,pmem,args")
@@ -731,7 +757,7 @@
       (shell-command-switch . "-c"))
      (tramp-connection-local-default-system-profile
       (path-separator . ":")
-      (null-device . "/dev/null"))) t)
+      (null-device . "/dev/null"))))
  '(custom-safe-themes
    '("e2337309361eef29e91656c5e511a6cb8c54ce26231e11424a8873ea88d9093e" "70b596389eac21ab7f6f7eb1cf60f8e60ad7c34ead1f0244a577b1810e87e58c" "5f128efd37c6a87cd4ad8e8b7f2afaba425425524a68133ac0efd87291d05874" "e1f4f0158cd5a01a9d96f1f7cdcca8d6724d7d33267623cc433fe1c196848554" "51c71bb27bdab69b505d9bf71c99864051b37ac3de531d91fdad1598ad247138" "8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" "412c25cf35856e191cc2d7394eed3d0ff0f3ee90bacd8db1da23227cdff74ca2" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default))
  '(dropbox-access-token
@@ -753,7 +779,7 @@
  '(org-trello-current-prefix-keybinding "C-c o")
  '(org-use-speed-commands t)
  '(package-selected-packages
-   '(slurm-mode denote org-modern emacsql-sqlite emacsql-sqlite-module sqlite3 use-package modus-themes theme-anchor eshell-git-prompt dirvish peep-dired quarto-mode emmet-mode visual-fill-column doom-themes hide-mode-line jsonrpc eglot detached typescript-mode texfrag all-the-icons all-the-icons-dired dired-sidebar auctex yaml-mode polymode bash-completion csv-mode zotxt geiser-guile guix keychain-environment multiple-cursors ghub magit forge smartparens python-mode go-mode markdown-mode dash pcre2el julia-mode julia-repl julia-shell ess epc simpleclip poly-R poly-markdown poly-org lsp-mode purpose-mode window-purpose solarize-theme gnu-elpa-keyring-update hyperbole exwme exwm matlab-mode easy-hugo font-lock-studio gist dropbox sqlite r-autoyas pretty-symbols flucui-themes company flycheck zenburn image+ color-theme-solarized groovy-mode f dired+ highlight-parentheses))
+   '(ligature slurm-mode denote org-modern emacsql-sqlite emacsql-sqlite-module sqlite3 use-package modus-themes theme-anchor eshell-git-prompt dirvish peep-dired quarto-mode emmet-mode visual-fill-column doom-themes hide-mode-line jsonrpc eglot detached typescript-mode texfrag all-the-icons all-the-icons-dired dired-sidebar auctex yaml-mode polymode bash-completion csv-mode zotxt geiser-guile guix keychain-environment multiple-cursors ghub magit forge smartparens python-mode go-mode markdown-mode dash pcre2el julia-mode julia-repl julia-shell ess epc simpleclip poly-R poly-markdown poly-org lsp-mode purpose-mode window-purpose solarize-theme gnu-elpa-keyring-update hyperbole exwme exwm matlab-mode easy-hugo font-lock-studio gist dropbox sqlite r-autoyas pretty-symbols flucui-themes company flycheck zenburn image+ color-theme-solarized groovy-mode f dired+ highlight-parentheses))
  '(safe-local-variable-values '((babshash . babs8aecf935)))
  '(warning-suppress-log-types '((emacsql) (emacsql) (emacsql) (emacsql)))
  '(warning-suppress-types '((emacsql) (emacsql) (emacsql))))

@@ -15,9 +15,14 @@
   (setq comint-scroll-to-bottom-on-input t)
   (setq comint-scroll-to-bottom-on-output t)
   (setq comint-move-point-for-output t)
-  (setq ess-r-prettify-symbols '(("%>%"  . ?⟫) ("<-"  . #Xe137) ("function" . ?ℱ)
-	  ("!=" . ?≠) ("==" . ?≡) ("<=" . ?≤) (">=" . ?≥)
-	  ("%<>%" . ?⟪) ("%in%" . ?∈)))
+  ;; (setq ess-r-prettify-symbols '(("%>%"  . ?⟫) ("<-"  . #Xe137) ("function" . ?ℱ)
+  ;; 	  ("!=" . ?≠) ("==" . ?≡) ("<=" . ?≤) (">=" . ?≥)
+  ;; 	  ("%<>%" . ?⟪) ("%in%" . ?∈)))
+  (setq ess-r-prettify-symbols '(
+				 ("%>%"  . ?⟫)
+	("function" . ?ℱ)
+	("%in%" . ?∈)
+	))
   :config
   (require 'ess-site)
   (require 'polymode)
