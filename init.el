@@ -12,7 +12,7 @@
      )
     (setq gpk-babshome (getenv "my_lab")
 	  gpk-oncamp t)
-  (setq gpk-babshome "I:\\"
+  (setq gpk-babshome "N:\\"
 	gpk-oncamp nil)
   )
 (setq inhibit-default-init t)
@@ -556,6 +556,27 @@
   (org-image-actual-width nil)
   )
 
+(use-package logos
+  :init
+  (setq logos-outline-regexp-alist
+      `((emacs-lisp-mode . "^;;;+ ")
+        (org-mode . "^\\*+ +")
+        (markdown-mode . "^\\#+ +")))
+  
+  (setq-default logos-hide-cursor nil
+		logos-hide-mode-line t
+		logos-hide-buffer-boundaries t
+		logos-hide-fringe t
+		logos-variable-pitch nil
+		logos-buffer-read-only nil
+		logos-scroll-lock nil
+		logos-olivetti nil)
+  (let ((map global-map))
+    (define-key map [remap narrow-to-region] #'logos-narrow-dwim)
+    (define-key map [remap forward-page] #'logos-forward-page-dwim)
+    (define-key map [remap backward-page] #'logos-backward-page-dwim)
+    (define-key map (kbd "<f9>") #'logos-focus-mode))
+  )
 
 
 (use-package perspective
@@ -600,7 +621,7 @@
 			    )))
     (seq-reduce (lambda (thispth sublist) (replace-regexp-in-string
 					   (replace-regexp-in-string "USER" user-login-name
-								     (replace-regexp-in-string "^//CAMP/" gpk-babshome (car sublist))
+								     (replace-regexp-in-string "^//CAMP/" gpk-babshome (car sublist) nil t)
 								     )
 					   (cdr sublist) thispth))
 		gpk-abbrev-alist pth)
@@ -766,7 +787,7 @@
  '(ess-swv-processor 'knitr)
  '(highlight-parentheses-colors '("#2aa198" "#b58900" "#268bd2" "#6c71c4" "#859900"))
  '(hl-sexp-background-color "#efebe9")
- '(markdown-command "pandoc")
+ '(markdown-command "pandoc" t)
  '(moody-mode-line-height 20)
  '(org-clock-rounding-minutes 60)
  '(org-link-frame-setup
@@ -779,7 +800,7 @@
  '(org-trello-current-prefix-keybinding "C-c o")
  '(org-use-speed-commands t)
  '(package-selected-packages
-   '(ligature slurm-mode denote org-modern emacsql-sqlite emacsql-sqlite-module sqlite3 use-package modus-themes theme-anchor eshell-git-prompt dirvish peep-dired quarto-mode emmet-mode visual-fill-column doom-themes hide-mode-line jsonrpc eglot detached typescript-mode texfrag all-the-icons all-the-icons-dired dired-sidebar auctex yaml-mode polymode bash-completion csv-mode zotxt geiser-guile guix keychain-environment multiple-cursors ghub magit forge smartparens python-mode go-mode markdown-mode dash pcre2el julia-mode julia-repl julia-shell ess epc simpleclip poly-R poly-markdown poly-org lsp-mode purpose-mode window-purpose solarize-theme gnu-elpa-keyring-update hyperbole exwme exwm matlab-mode easy-hugo font-lock-studio gist dropbox sqlite r-autoyas pretty-symbols flucui-themes company flycheck zenburn image+ color-theme-solarized groovy-mode f dired+ highlight-parentheses))
+   '(logos ligature slurm-mode denote org-modern emacsql-sqlite emacsql-sqlite-module sqlite3 use-package modus-themes theme-anchor eshell-git-prompt dirvish peep-dired quarto-mode emmet-mode visual-fill-column doom-themes hide-mode-line jsonrpc eglot detached typescript-mode texfrag all-the-icons all-the-icons-dired dired-sidebar auctex yaml-mode polymode bash-completion csv-mode zotxt geiser-guile guix keychain-environment multiple-cursors ghub magit forge smartparens python-mode go-mode markdown-mode dash pcre2el julia-mode julia-repl julia-shell ess epc simpleclip poly-R poly-markdown poly-org lsp-mode purpose-mode window-purpose solarize-theme gnu-elpa-keyring-update hyperbole exwme exwm matlab-mode easy-hugo font-lock-studio gist dropbox sqlite r-autoyas pretty-symbols flucui-themes company flycheck zenburn image+ color-theme-solarized groovy-mode f dired+ highlight-parentheses))
  '(safe-local-variable-values '((babshash . babs8aecf935)))
  '(warning-suppress-log-types '((emacsql) (emacsql) (emacsql) (emacsql)))
  '(warning-suppress-types '((emacsql) (emacsql) (emacsql))))

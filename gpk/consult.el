@@ -116,3 +116,18 @@
   ;;;; 5. No project support
   ;; (setq consult-project-function nil)
 )
+
+(use-package consult-notes
+  :commands (consult-notes
+             consult-notes-search-in-all-notes
+             ;; if using org-roam 
+             consult-notes-org-roam-find-node
+             consult-notes-org-roam-find-node-relation)
+  :config
+  ;; Set org-roam integration, denote integration, or org-heading integration e.g.:
+  (setq consult-notes-sources
+        `(("Notes"  ?n ,denote-directory)
+	  ))
+  (consult-notes-org-headings-mode)
+  (when (locate-library "denote")
+    (consult-notes-denote-mode)))

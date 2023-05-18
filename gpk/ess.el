@@ -67,7 +67,22 @@
       )
     (ess-next-code-line 1)
     )
-  (defun gpk-findr ()
+
+      
+   (defun gpk-qmd-to-params ()
+    "Convert yaml header to R object"
+    (interactive)
+    (save-excursion
+      (beginning-of-buffer)
+      (let ((yaml-string (buffer-substring (re-search-forward "---") (re-search-forward "---")))
+	    )
+	    (ess-eval-linewise (concat "params <- yaml::read_yaml(text=r\"(" yaml-string ")\")$params" nil nil))
+	)
+      )
+    )
+   
+
+(defun gpk-findr ()
     (mapcan (lambda (path) 
 	      (mapcar (lambda (r) (concat path r)) (file-name-all-completions "R-" path))
 	      )
