@@ -100,7 +100,7 @@
 
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
-  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+   (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
 
   ;; By default `consult-project-function' uses `project-root' from project.el.
   ;; Optionally configure a different project root function.

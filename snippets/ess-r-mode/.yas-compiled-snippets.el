@@ -6,4 +6,4 @@
 		       ("gg" "ggplot(data=$1, aes($2)) + geom_$3()\n" "ggplot" nil nil nil "/camp/home/kellyg/.emacs.d/snippets/ess-r-mode/gg" nil nil)))
 
 
-;;; Do not edit! File generated at Thu May 11 09:29:54 2023
+;;; Do not edit! File generated at Fri Nov  3 15:55:50 2023

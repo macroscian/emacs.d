@@ -27,6 +27,7 @@
     (magit-status)
     )
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Packages
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -58,6 +59,7 @@
 
   ;; Load the theme of your choice.
   (load-theme 'modus-operandi :no-confirm)
+  (load-theme 'ef-light :no-confirm)
 
   (define-key global-map (kbd "<f5>") #'modus-themes-toggle))
 
@@ -71,6 +73,8 @@
 		       (mode . ess-r-mode)
 		       (filename . "rmd$")
 		       (filename . "Rmd$")
+		       (filename . "qmd$")
+		       (filename . "Qmd$")
 		       ))
 	 ("R" (mode . inferior-ess-r-mode))
 	 ("Julia scripts" (or
@@ -105,10 +109,53 @@
 (setq ibuffer-show-empty-filter-groups nil)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
-(use-package dirvish
-  :ensure t
-  :config (dirvish-override-dired-mode)
+(use-package all-the-icons
+  :config
+  (add-to-list 'all-the-icons-extension-icon-alist '("qmd" all-the-icons-fileicon "R" :face all-the-icons-lblue))
   )
+
+
+(use-package dirvish
+  :init
+  (dirvish-override-dired-mode)
+  :custom
+  (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
+   (list '("h" "~/"                          "Home")
+     (list "w" (concat gpk-babshome "working/kellyg/") "Working")
+     (list "p" (concat gpk-babshome "working/kellyg/projects") "Projects")
+     (list "f" (concat gpk-babshome "working/kellyg/projects/github/FrancisCrickInstitute") "FCI Github")
+     '("t" "~/.local/share/Trash/files/" "TrashCan")))
+  :config
+  ;; (dirvish-peek-mode) ; Preview files in minibuffer
+  ;; (dirvish-side-follow-mode) ; similar to `treemacs-follow-mode'
+  (setq dirvish-mode-line-format
+        '(:left (sort symlink) :right (omit yank index)))
+  (setq dirvish-attributes
+        '(all-the-icons file-time file-size collapse subtree-state vc-state git-msg))
+  (setq delete-by-moving-to-trash t)
+  (setq dired-listing-switches
+        "-l --almost-all --human-readable --group-directories-first --no-group")
+  :bind ; Bind `dirvish|dirvish-side|dirvish-dwim' as you see fit
+  (("C-c d" . dirvish-dwim)
+   :map dirvish-mode-map ; Dirvish inherits `dired-mode-map'
+   ("a"   . dirvish-quick-access)
+   ("f"   . dirvish-file-info-menu)
+   ("y"   . dirvish-yank-menu)
+   ("N"   . dirvish-narrow)
+   ("^"   . dirvish-history-last)
+   ("h"   . dirvish-history-jump) ; remapped `describe-mode'
+   ("s"   . dirvish-quicksort)    ; remapped `dired-sort-toggle-or-edit'
+   ("v"   . dirvish-vc-menu)      ; remapped `dired-view-file'
+   ("TAB" . dirvish-subtree-toggle)
+   ("M-f" . dirvish-history-go-forward)
+   ("M-b" . dirvish-history-go-backward)
+   ("M-l" . dirvish-ls-switches-menu)
+   ("M-m" . dirvish-mark-menu)
+   ("M-t" . dirvish-layout-toggle)
+   ("M-s" . dirvish-setup-menu)
+   ("M-e" . dirvish-emerge-menu)
+   ("M-j" . dirvish-fd-jump)))
+
 
 (use-package slurm-mode
   :ensure t
@@ -120,9 +167,8 @@
 	     (ibuffer-switch-to-saved-filter-groups "home")))
 
 (use-package denote
-  :custom ((denote-directory "/camp/stp/babs/working/kellyg/docs/notes"))
+  :custom ((denote-directory "/nemo/stp/babs/working/kellyg/docs/notes"))
   )
-
 
 (use-package ligature
   :config
@@ -148,6 +194,9 @@
   ;; Enables ligature checks globally in all buffers.  You can also do it
   ;; per mode with `ligature-mode'.
   (global-ligature-mode t))
+(use-package clipetty
+  :ensure t
+  :hook (after-init . global-clipetty-mode))
 
 (use-package org-modern
   :after org
@@ -286,7 +335,7 @@
 ;;(setq ispell-program-name "/camp/stp/babs/working/kellyg/code/bin/hunspell.sh")
 (setq ispell-program-name "hunspell")
 (setq ispell-local-dictionary "en_GB")
-(setq ispell-hunspell-dict-paths-alist '(("en_GB" "/camp/stp/babs/working/kellyg/docs/en_GB.aff")))
+(setq ispell-hunspell-dict-paths-alist '(("en_GB" "/nemo/stp/babs/working/kellyg/docs/en_GB.aff")))
 (setq uniquify-buffer-name-style 'post-forward)
 (setq uniquify-strip-common-suffix nil)
 (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
@@ -309,19 +358,19 @@
 
 (use-package easy-hugo
   :init
-  (setq easy-hugo-basedir "/camp/stp/babs/working/kellyg/projects/babs/gavin.kelly/blog/")
+  (setq easy-hugo-basedir "/nemo/stp/babs/working/kellyg/projects/babs/gavin.kelly/blog/")
   (setq easy-hugo-url "https://www.guermantes.xyz")
   (setq easy-hugo-sshdomain "blogdomain")
   (setq easy-hugo-root "/home/blog/")
   (setq easy-hugo-previewtime "300")
   (setq easy-hugo-bloglist
 	;; blog2 setting
-	'(((easy-hugo-basedir . "/camp/stp/babs/working/kellyg/projects/github/FrancisCrickInstitute/BABS_lab_site")
+	'(((easy-hugo-basedir . "/nemo/stp/babs/working/kellyg/projects/github/FrancisCrickInstitute/BABS_lab_site")
 	   (easy-hugo-url . "https://wiki-bioinformatics.thecrick.org/~kellyg/blog")
 	   (easy-hugo-sshdomain . "localhost")
 	   (easy-hugo-postdir . "content/post")
-	   (easy-hugo-root . "/camp/stp/babs/www/kellyg/public_html/LIVE/blog"))
-	  ((easy-hugo-basedir . "/camp/stp/babs/working/kellyg/projects/github/FrancisCrickInstitute/babs-website/")
+	   (easy-hugo-root . "/nemo/stp/babs/www/kellyg/public_html/LIVE/blog"))
+	  ((easy-hugo-basedir . "/nemo/stp/babs/working/kellyg/projects/github/FrancisCrickInstitute/babs-website/")
 	   (easy-hugo-url . "https://bioinformatics.thecrick.org/babs")
 	   (easy-hugo-sshdomain . "localhost")
 	   (easy-hugo-postdir . "content/home")
@@ -358,20 +407,6 @@
 ;;   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 ;;   (projectile-mode +1))
 
-(use-package detached
-  :init
-  (detached-init)
-  :bind (
-         ([remap async-shell-command] . detached-shell-command)
-         ([remap compile] . detached-compile)
-         ([remap recompile] . detached-compile-recompile)
-         ([remap detached-open-session] . detached-consult-session))
-  :bind-keymap
-  ("C-c d" . detached-action-map)
-  :custom ((detached-env "/camp/home/kellyg/.emacs.d/elpa/detached-0.7/detached-env")
-           (detached-show-output-on-attach t)
-           (detached-shell-history-file "~/.bash_history")))
-
 
 (use-package magit
   :commands magit-get-top-dir
@@ -391,7 +426,7 @@
   :config
   (global-undo-tree-mode)
   :custom
-  (undo-tree-history-directory-alist '(("." . "/camp/stp/babs/scratch/kellyg/undo-tree")))
+  (undo-tree-history-directory-alist '(("." . "/flask/scratch/babs/kellyg/undo-tree")))
   )
 
 (use-package web-mode
@@ -420,6 +455,8 @@
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
   ;; (setq vertico-cycle t)
   :bind (:map vertico-map
+              ("TAB"   . minibuffer-complete)
+              ("RET"   . vertico-directory-enter)
               ("RET"   . vertico-directory-enter)
               ("DEL"   . vertico-directory-delete-char)
               ("M-DEL" . vertico-directory-delete-word))
@@ -429,7 +466,7 @@
   :ensure t
   :custom
   (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion))))
+  (completion-category-overrides '((file (styles partial-completion))))
   )
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
@@ -579,13 +616,13 @@
   )
 
 
-(use-package perspective
-  :bind
-  ("C-x C-b" . persp-list-buffers)         ; or use a nicer switcher, see below
-  :custom
-  (persp-mode-prefix-key (kbd "C-c M-p"))  ; pick your own prefix key here
-  :init
-  (persp-mode))
+;; (use-package perspective
+;;   :bind
+;;   ("C-x C-b" . persp-list-buffers)         ; or use a nicer switcher, see below
+;;   :custom
+;;   (persp-mode-prefix-key (kbd "C-c M-p"))  ; pick your own prefix key here
+;;   :init
+;;   (persp-mode))
 
 (use-package yasnippet
   :commands
@@ -612,28 +649,35 @@
 
 ;; Abbreviations for standard directories
 (defun gpk-abbrev (pth)
-  (let ((gpk-abbrev-alist `(("//CAMP/working/USER/projects/" ."PROJ>")
-			    ("//CAMP/working/USER/" . "GPK>")
-			    ("//CAMP/working/" . "WORK>")
-			    ("//CAMP" . "BABS>")
+  (let ((gpk-abbrev-alist `(("//NEMO/working/USER/projects/" ."PROJ>")
+			    ("//NEMO/working/USER/" . "GPK>")
+			    ("//NEMO/working/" . "WORK>")
+			    ("//NEMO" . "BABS>")
 			    (,(getenv "HOME") . "~")
 			    ("/home/camp/USER" . "~")
 			    )))
     (seq-reduce (lambda (thispth sublist) (replace-regexp-in-string
+<<<<<<< HEAD
 					   (replace-regexp-in-string "USER" user-login-name
 								     (replace-regexp-in-string "^//CAMP/" gpk-babshome (car sublist) nil t)
 								     )
 					   (cdr sublist) thispth))
+=======
+				      (replace-regexp-in-string "USER" user-login-name
+								(replace-regexp-in-string "^//NEMO/" gpk-babshome (car sublist))
+								)
+				      (cdr sublist) thispth))
+>>>>>>> 3615080 (Better dirvish mode, and a few more nemo changes)
 		gpk-abbrev-alist pth)
     )
   )
 
 ;; Use abbreviations in window title
 (setq frame-title-format
-      '((:eval (gpk-abbrev (if (buffer-file-name)
-			       (buffer-file-name)
+      '((:eval (concat (getenv "PROJECT") " " (gpk-abbrev (if (buffer-file-name)
+			        (buffer-file-name)
 			     (comint-directory "."))
-			   )))
+			   ))))
       )
 
 ;; Get lab names from directory structure
@@ -653,13 +697,10 @@
 
 
 ;; My bookmarks
-(dolist (r `((?e (file . ,(concat "~/.emacs.d/init.el")))
-	     (?t (file . ,(concat gpk-babshome "working/" user-login-name "/templates")))
-	     (?P (file . ,(concat gpk-babshome "working/" user-login-name "/projects")))
-	     (?T "## * TODO ")
-	     (?c "@crick.ac.uk")
+(dolist (r `(
+	     (?c . "@crick.ac.uk")
 	     ))
-  (set-register (car r) (car (cdr r))))
+  (set-register (car r)  (cdr r)))
 
 
 
@@ -800,10 +841,20 @@
  '(org-trello-current-prefix-keybinding "C-c o")
  '(org-use-speed-commands t)
  '(package-selected-packages
+<<<<<<< HEAD
    '(logos ligature slurm-mode denote org-modern emacsql-sqlite emacsql-sqlite-module sqlite3 use-package modus-themes theme-anchor eshell-git-prompt dirvish peep-dired quarto-mode emmet-mode visual-fill-column doom-themes hide-mode-line jsonrpc eglot detached typescript-mode texfrag all-the-icons all-the-icons-dired dired-sidebar auctex yaml-mode polymode bash-completion csv-mode zotxt geiser-guile guix keychain-environment multiple-cursors ghub magit forge smartparens python-mode go-mode markdown-mode dash pcre2el julia-mode julia-repl julia-shell ess epc simpleclip poly-R poly-markdown poly-org lsp-mode purpose-mode window-purpose solarize-theme gnu-elpa-keyring-update hyperbole exwme exwm matlab-mode easy-hugo font-lock-studio gist dropbox sqlite r-autoyas pretty-symbols flucui-themes company flycheck zenburn image+ color-theme-solarized groovy-mode f dired+ highlight-parentheses))
+=======
+   '(ef-themes all-the-icons-ibuffer tree-sitter-ess-r tree-sitter clipetty rg slurm-mode denote org-modern emacsql-sqlite emacsql-sqlite-module sqlite3 use-package modus-themes theme-anchor eshell-git-prompt dirvish peep-dired quarto-mode emmet-mode visual-fill-column doom-themes hide-mode-line jsonrpc eglot typescript-mode texfrag all-the-icons all-the-icons-dired dired-sidebar auctex yaml-mode polymode bash-completion csv-mode zotxt geiser-guile guix keychain-environment multiple-cursors ghub magit forge smartparens python-mode go-mode markdown-mode dash pcre2el julia-mode julia-repl julia-shell ess epc simpleclip poly-R poly-markdown poly-org lsp-mode purpose-mode window-purpose solarize-theme gnu-elpa-keyring-update hyperbole exwme exwm matlab-mode easy-hugo font-lock-studio gist dropbox sqlite r-autoyas pretty-symbols flucui-themes company flycheck zenburn image+ color-theme-solarized groovy-mode f dired+ highlight-parentheses))
+>>>>>>> 3615080 (Better dirvish mode, and a few more nemo changes)
  '(safe-local-variable-values '((babshash . babs8aecf935)))
  '(warning-suppress-log-types '((emacsql) (emacsql) (emacsql) (emacsql)))
- '(warning-suppress-types '((emacsql) (emacsql) (emacsql))))
+ '(warning-suppress-types
+   '((use-package)
+     (use-package)
+     (use-package)
+     (emacsql)
+     (emacsql)
+     (emacsql))))
 
 
 			
@@ -814,5 +865,5 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(forge-topic-open ((t (:inherit default)))))
 (put 'dired-find-alternate-file 'disabled nil)

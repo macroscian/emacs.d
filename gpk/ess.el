@@ -4,7 +4,9 @@
 	 ("\\.R\\'" . R-mode)
 	 ("\\.Rmd" . poly-markdown+r-mode)
 	 ("\\.rmd" . poly-markdown+r-mode)
-	 ("\\.jl\\'" . ess-julia-mode))
+	 ("\\.jl\\'" . ess-julia-mode)
+	 ("\\.spec\\'" . R-mode)
+	 )
   :init
   (setq ess-r-package-auto-activate nil)
   (setq ess-default-style 'RStudio)
@@ -18,11 +20,7 @@
   ;; (setq ess-r-prettify-symbols '(("%>%"  . ?⟫) ("<-"  . #Xe137) ("function" . ?ℱ)
   ;; 	  ("!=" . ?≠) ("==" . ?≡) ("<=" . ?≤) (">=" . ?≥)
   ;; 	  ("%<>%" . ?⟪) ("%in%" . ?∈)))
-  (setq ess-r-prettify-symbols '(
-				 ("%>%"  . ?⟫)
-	("function" . ?ℱ)
-	("%in%" . ?∈)
-	))
+  (setq ess-r-prettify-symbols '(("function" . ?ℱ) ("%>%" . ?») ("%in%" . ?∈)))
   :config
   (require 'ess-site)
   (require 'polymode)
@@ -42,7 +40,8 @@
   (bind-key "C-c D" 'gpk-set-display inferior-ess-mode-map)
   (bind-key "C-<up>" 'comint-previous-matching-input-from-input inferior-ess-mode-map)
   (bind-key "C-<down>" 'comint-next-matching-input-from-input inferior-ess-mode-map)
-  (bind-key "C-c ="  'gpk-ess-clip ess-mode-map)
+  (bind-key "C-c ="  'ess-cycle-assign ess-mode-map)
+  (bind-key "C-c ="  'ess-cycle-assign inferior-ess-mode-map)
   (setq comint-input-ring-size 1000)
   (setq-default ess-dialect "R")
   (setq ess-eval-visibly nil)
@@ -89,6 +88,13 @@
 	    (list (locate-dominating-file default-directory (lambda(d) (file-name-all-completions "R-" d))))
 	    )
     )
+  ;; (defun gpk-findr ()
+  ;;   (list
+  ;;    (locate-dominating-file default-directory (lambda(d) (file-name-all-completions "R-" d)))
+  ;;    (format "/nemo/stp/babs/working/kellyg/code/bin/R-singularity")
+  ;;    )
+  ;;   )
+  
   
   (defun gpk-r-set ()
     (interactive)
